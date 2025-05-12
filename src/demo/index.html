@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>公式编辑器演示 | Formula Editor Demo</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        margin-bottom: 30px;
+        text-align: center;
+      }
+
+      h1 {
+        color: #2c3e50;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .demo-section {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+
+      .editor-container {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        min-height: 150px;
+        margin-bottom: 15px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      .output {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        min-height: 50px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+
+      .custom-editor {
+        margin-top: 30px;
+      }
+
+      footer {
+        margin-top: 40px;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+      }
+      
+      .instructions {
+        background-color: #e3f2fd;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+      }
+      
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      
+      .legend-item {
+        display: flex;
+        align-items: center;
+        margin-right: 10px;
+      }
+      
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        display: inline-block;
+        margin-right: 5px;
+      }
+      
+      .legend-symbol { background-color: #e3f2fd; }
+      .legend-number { background-color: #e8f5e9; }
+      .legend-variable { background-color: #fff8e1; }
+      .legend-operator { background-color: #fce4ec; }
+      .legend-function { background-color: #f3e5f5; }
+      .legend-bracket { background-color: #ede7f6; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>公式编辑器演示 | Formula Editor Demo</h1>
+      <p>一个可配置的标签式公式编辑器，支持各种符号和公式功能</p>
+    </header>
+
+    <div class="container">
+      <div class="demo-section">
+        <h2>基本演示</h2>
+        <div class="instructions">
+          <p><strong>使用说明：</strong></p>
+          <ul>
+            <li>点击编辑区域并使用箭头键移动光标</li>
+            <li>点击 Σ 按钮插入符号</li>
+            <li>使用退格键删除元素</li>
+            <li>点击元素可将光标移到元素后面</li>
+          </ul>
+          <div class="legend">
+            <div class="legend-item"><span class="legend-color legend-symbol"></span>符号</div>
+            <div class="legend-item"><span class="legend-color legend-number"></span>数字</div>
+            <div class="legend-item"><span class="legend-color legend-variable"></span>变量</div>
+            <div class="legend-item"><span class="legend-color legend-operator"></span>运算符</div>
+            <div class="legend-item"><span class="legend-color legend-function"></span>函数</div>
+            <div class="legend-item"><span class="legend-color legend-bracket"></span>括号</div>
+          </div>
+        </div>
+        <div id="editor1" class="editor-container"></div>
+
+        <div class="controls">
+          <button id="clear1">清空</button>
+          <button id="setFormula1">设置公式 E=mc²</button>
+          <button id="getFormula1">获取公式</button>
+        </div>
+
+        <div>
+          <h3>输出:</h3>
+          <div id="output1" class="output"></div>
+        </div>
+      </div>
+
+      <div class="demo-section custom-editor">
+        <h2>自定义符号演示</h2>
+        <div id="editor2" class="editor-container"></div>
+
+        <div class="controls">
+          <button id="clear2">清空</button>
+          <button id="setFormula2">设置公式 F=ma</button>
+          <button id="getFormula2">获取公式</button>
+          <button id="toggleReadOnly">切换只读模式</button>
+        </div>
+
+        <div>
+          <h3>输出:</h3>
+          <div id="output2" class="output"></div>
+        </div>
+      </div>
+
+      <div class="demo-section custom-editor">
+        <h2>验证功能演示</h2>
+        <div class="instructions">
+          <p><strong>验证规则：</strong></p>
+          <ul>
+            <li>公式不能为空</li>
+            <li>括号必须匹配</li>
+            <li>公式必须包含等号</li>
+            <li>操作符两侧必须有操作数</li>
+            <li><strong>操作数不能连续出现</strong> (例如：不能直接写"x y"或"2 3")</li>
+          </ul>
+          <p>在输入过程中会自动验证公式，并高亮显示错误的部分。</p>
+        </div>
+        <div id="editor3" class="editor-container"></div>
+
+        <div class="controls">
+          <button id="clear3">清空</button>
+          <button id="setValidFormula">设置有效公式</button>
+          <button id="setInvalidFormula">设置无效公式</button>
+          <button id="setConsecutiveOperandsFormula">连续操作数错误</button>
+          <button id="validateFormula">手动验证</button>
+        </div>
+
+        <div>
+          <h3>验证结果:</h3>
+          <div id="validation-result" class="output"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>公式编辑器 - 使用TypeScript构建的标签式无框架依赖编辑器</p>
+    </footer>
+
+    <script src="index.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 基本编辑器实例
+        const editor1 = new FormulaEditor.FormulaEditor({
+          container: document.getElementById("editor1"),
+          initialFormula: "x^2+y^2=r^2"  // 圆的方程，展示上下标
+        });
+
+        // 自定义符号编辑器实例 - 使用对象方式定义符号
+        const editor2 = new FormulaEditor.FormulaEditor({
+          container: document.getElementById("editor2"),
+          symbols: {
+            physics: [
+              { value: "α", description: "Alpha - 角加速度", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "β", description: "Beta - 角度", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "γ", description: "Gamma - 比热比", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "θ", description: "Theta - 角度", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "ω", description: "Omega - 角速度", type: FormulaEditor.ElementType.VARIABLE },
+              { 
+                value: "Δ", 
+                description: "Delta - 差值", 
+                type: FormulaEditor.ElementType.VARIABLE,
+                style: { 
+                  backgroundColor: "#e3f2fd", 
+                  fontWeight: "bold" 
+                }
+              },
+              { value: "λ", description: "Lambda - 波长", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "μ", description: "Mu - 摩擦系数", type: FormulaEditor.ElementType.VARIABLE }
+            ],
+            units: [
+              { value: "m", description: "米", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "s", description: "秒", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "kg", description: "千克", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "N", description: "牛顿", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "J", description: "焦耳", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "W", description: "瓦特", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "V", description: "伏特", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "A", description: "安培", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "Ω", description: "欧姆", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "°C", description: "摄氏度", type: FormulaEditor.ElementType.VARIABLE }
+            ],
+            operators: [
+              { value: "=", description: "等于", type: FormulaEditor.ElementType.OPERATOR },
+              { value: "+", description: "加", type: FormulaEditor.ElementType.OPERATOR },
+              { value: "-", description: "减", type: FormulaEditor.ElementType.OPERATOR },
+              { value: "×", description: "乘", insertValue: "*", type: FormulaEditor.ElementType.OPERATOR },
+              { value: "÷", description: "除", insertValue: "/", type: FormulaEditor.ElementType.OPERATOR },
+              { value: "±", description: "正负号", type: FormulaEditor.ElementType.OPERATOR },
+              { value: "(", description: "左括号", type: FormulaEditor.ElementType.BRACKET },
+              { value: ")", description: "右括号", type: FormulaEditor.ElementType.BRACKET },
+              { value: "[", description: "左方括号", type: FormulaEditor.ElementType.BRACKET },
+              { value: "]", description: "右方括号", type: FormulaEditor.ElementType.BRACKET }
+            ],
+            functions: [
+              { 
+                value: "sin", 
+                description: "正弦函数", 
+                type: FormulaEditor.ElementType.FUNCTION,
+                style: { 
+                  width: "auto", 
+                  padding: "0 10px" 
+                }
+              },
+              { 
+                value: "cos", 
+                description: "余弦函数", 
+                type: FormulaEditor.ElementType.FUNCTION,
+                style: { 
+                  width: "auto", 
+                  padding: "0 10px" 
+                }
+              },
+              { 
+                value: "tan", 
+                description: "正切函数", 
+                type: FormulaEditor.ElementType.FUNCTION,
+                style: { 
+                  width: "auto", 
+                  padding: "0 10px" 
+                }
+              },
+              { 
+                value: "log", 
+                description: "对数函数", 
+                type: FormulaEditor.ElementType.FUNCTION,
+                style: { 
+                  width: "auto", 
+                  padding: "0 10px" 
+                }
+              }
+            ],
+            constants: [
+              { value: "π", description: "圆周率", type: FormulaEditor.ElementType.VARIABLE },
+              { value: "e", description: "自然对数底数", type: FormulaEditor.ElementType.VARIABLE },
+              { 
+                value: "c", 
+                description: "光速 (299,792,458 m/s)", 
+                type: FormulaEditor.ElementType.VARIABLE,
+                insertValue: "c",
+                style: { 
+                  backgroundColor: "#ffecb3", 
+                  color: "#ff6f00", 
+                  fontWeight: "bold" 
+                }
+              },
+              { 
+                value: "G", 
+                description: "万有引力常数", 
+                type: FormulaEditor.ElementType.VARIABLE,
+                style: { 
+                  backgroundColor: "#ffecb3" 
+                }
+              }
+            ]
+          },
+          styles: {
+            fontSize: "18px",
+            border: "2px solid #3498db",
+            symbolPanel: {
+              backgroundColor: "#ecf0f1",
+              symbolColor: "#2980b9",
+              borderColor: "#bdc3c7",
+            },
+          },
+        });
+
+        // 验证编辑器实例
+        const editor3 = new FormulaEditor.FormulaEditor({
+          container: document.getElementById("editor3"),
+          initialFormula: "E=mc^2",
+          validation: {
+            autoValidate: true,
+            rules: [
+              { 
+                type: FormulaEditor.ValidationRuleType.NON_EMPTY, 
+                message: "公式不能为空" 
+              },
+              { 
+                type: FormulaEditor.ValidationRuleType.BRACKETS_MATCH, 
+                message: "括号不匹配，请检查括号" 
+              },
+              { 
+                type: FormulaEditor.ValidationRuleType.HAS_EQUALS, 
+                message: "公式必须包含等号" 
+              },
+              { 
+                type: FormulaEditor.ValidationRuleType.OPERATORS_SURROUNDED, 
+                message: "操作符两侧必须有操作数" 
+              },
+              { 
+                type: FormulaEditor.ValidationRuleType.NO_CONSECUTIVE_OPERANDS, 
+                message: "操作数不能连续出现，需要用运算符分隔" 
+              },
+              { 
+                type: FormulaEditor.ValidationRuleType.CUSTOM, 
+                message: "自定义验证：公式长度必须大于3",
+                validate: function(formula, elements) {
+                  return formula.length > 3;
+                }
+              }
+            ]
+          }
+        });
+
+        // 事件处理 - 编辑器1
+        document
+          .getElementById("clear1")
+          .addEventListener("click", function () {
+            editor1.clear();
+          });
+
+        document
+          .getElementById("setFormula1")
+          .addEventListener("click", function () {
+            editor1.setFormula("E=mc^2");
+          });
+
+        document
+          .getElementById("getFormula1")
+          .addEventListener("click", function () {
+            const formula = editor1.getFormula();
+            document.getElementById("output1").textContent = formula;
+          });
+
+        // 事件处理 - 编辑器2
+        document
+          .getElementById("clear2")
+          .addEventListener("click", function () {
+            editor2.clear();
+          });
+
+        document
+          .getElementById("setFormula2")
+          .addEventListener("click", function () {
+            editor2.setFormula("F=ma");
+          });
+
+        document
+          .getElementById("getFormula2")
+          .addEventListener("click", function () {
+            const formula = editor2.getFormula();
+            document.getElementById("output2").textContent = formula;
+          });
+
+        let isReadOnly = false;
+        document
+          .getElementById("toggleReadOnly")
+          .addEventListener("click", function () {
+            isReadOnly = !isReadOnly;
+            editor2.setReadOnly(isReadOnly);
+            this.textContent = isReadOnly ? "启用编辑" : "切换只读模式";
+          });
+
+        // 事件处理 - 编辑器3 (验证)
+        document
+          .getElementById("clear3")
+          .addEventListener("click", function () {
+            editor3.clear();
+          });
+
+        document
+          .getElementById("setValidFormula")
+          .addEventListener("click", function () {
+            editor3.setFormula("a=b+c");
+          });
+
+        document
+          .getElementById("setInvalidFormula")
+          .addEventListener("click", function () {
+            editor3.setFormula("a=(b+");
+          });
+
+        document
+          .getElementById("validateFormula")
+          .addEventListener("click", function () {
+            const result = editor3.validateFormula();
+            displayValidationResult(result);
+          });
+
+        // 添加连续操作数错误示例按钮
+        document
+          .getElementById("setConsecutiveOperandsFormula")
+          .addEventListener("click", function () {
+            editor3.setFormula("a=b c");
+          });
+
+        // 显示验证结果
+        function displayValidationResult(result) {
+          const validationOutput = document.getElementById("validation-result");
+          
+          if (result.valid) {
+            validationOutput.innerHTML = '<span style="color: green;">✓ 验证通过</span>';
+          } else {
+            let errorHtml = '<span style="color: red;">✗ 验证失败</span><ul>';
+            result.errors.forEach(error => {
+              errorHtml += `<li>${error.message}</li>`;
+            });
+            errorHtml += '</ul>';
+            validationOutput.innerHTML = errorHtml;
+          }
+        }
+
+        // 添加验证事件监听
+        editor3.addEventListener(
+          FormulaEditor.EventType.VALIDATION_ERROR,
+          function (data) {
+            console.log("验证错误:", data);
+            displayValidationResult(data);
+          },
+        );
+
+        editor3.addEventListener(
+          FormulaEditor.EventType.VALIDATION_SUCCESS,
+          function (data) {
+            console.log("验证成功:", data);
+            displayValidationResult(data);
+          },
+        );
+
+        // 变更事件监听
+        editor1.addEventListener(
+          FormulaEditor.EventType.CHANGE,
+          function (data) {
+            console.log("编辑器1 - 变更事件:", data);
+          },
+        );
+
+        editor2.addEventListener(
+          FormulaEditor.EventType.CHANGE,
+          function (data) {
+            console.log("编辑器2 - 变更事件:", data);
+          },
+        );
+
+        editor3.addEventListener(
+          FormulaEditor.EventType.CHANGE,
+          function (data) {
+            console.log("编辑器3 - 变更事件:", data);
+          },
+        );
+      });
+    </script>
+  </body>
+</html>
+

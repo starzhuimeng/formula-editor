@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公式编辑器API演示</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+        h2 {
+            margin-top: 20px;
+            color: #2980b9;
+        }
+        .editor-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .demo-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .api-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .output {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow: auto;
+        }
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .element-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .event-log {
+            height: 150px;
+            overflow-y: auto;
+            background-color: #f8f8f8;
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .section-title {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 0;
+        }
+        .event-item {
+            padding: 3px 6px;
+            margin-bottom: 2px;
+            border-radius: 2px;
+        }
+        .event-item:nth-child(odd) {
+            background-color: #e9e9e9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>公式编辑器API演示</h1>
+        
+        <div class="demo-section">
+            <h3 class="section-title">编辑器实例</h3>
+            <div id="editor-container" class="editor-container"></div>
+            
+            <h3>当前公式</h3>
+            <div id="formula-output" class="output"></div>
+            
+            <h3>事件日志</h3>
+            <div id="event-log" class="event-log"></div>
+        </div>
+        
+        <div class="demo-section">
+            <h3 class="section-title">基本操作</h3>
+            <div class="api-controls">
+                <button id="get-formula">获取公式</button>
+                <button id="set-formula">设置公式</button>
+                <input id="formula-input" type="text" placeholder="输入公式，如a+b=c" value="a+b=c">
+                <button id="clear-formula">清空公式</button>
+                <button id="toggle-readonly">切换只读模式</button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3 class="section-title">元素操作</h3>
+            <div class="api-controls">
+                <h4>获取元素</h4>
+                <div>
+                    <input id="get-element-index" type="number" min="0" value="0" style="width: 60px;">
+                    <button id="get-element">获取元素</button>
+                    <button id="get-all-elements">获取所有元素</button>
+                </div>
+                
+                <h4>插入/更新元素</h4>
+                <div class="element-form">
+                    <input id="element-value" type="text" placeholder="元素值，如 x" value="x">
+                    <select id="element-type">
+                        <option value="variable">变量</option>
+                        <option value="number">数字</option>
+                        <option value="operator">运算符</option>
+                        <option value="bracket">括号</option>
+                        <option value="function">函数</option>
+                        <option value="symbol">符号</option>
+                    </select>
+                    <input id="element-index" type="number" min="0" value="0" placeholder="位置">
+                    <button id="insert-element">插入元素</button>
+                    <button id="append-element">添加到末尾</button>
+                    <button id="update-element">更新元素</button>
+                </div>
+                
+                <h4>删除元素</h4>
+                <div>
+                    <input id="remove-element-index" type="number" min="0" value="0" style="width: 60px;">
+                    <button id="remove-element">删除元素</button>
+                    <button id="delete-current">删除当前元素</button>
+                </div>
+                
+                <h4>光标控制</h4>
+                <div>
+                    <input id="focus-index" type="number" min="0" value="0" style="width: 60px;">
+                    <button id="set-focus">设置光标位置</button>
+                    <button id="get-focus">获取光标位置</button>
+                </div>
+                
+                <h4>搜索元素</h4>
+                <div>
+                    <select id="search-type">
+                        <option value="variable">变量</option>
+                        <option value="number">数字</option>
+                        <option value="operator">运算符</option>
+                        <option value="bracket">括号</option>
+                        <option value="function">函数</option>
+                        <option value="symbol">符号</option>
+                    </select>
+                    <button id="find-elements">查找元素</button>
+                </div>
+                
+                <h4>批量操作</h4>
+                <div>
+                    <button id="set-elements">设置新元素集</button>
+                    <button id="get-text">获取纯文本</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3 class="section-title">验证操作</h3>
+            <div class="api-controls">
+                <button id="validate-formula">验证公式</button>
+                <button id="get-validation">获取验证结果</button>
+                <button id="set-validation-rules">设置验证规则</button>
+                <button id="toggle-auto-validate">切换自动验证</button>
+            </div>
+        </div>
+        
+        <div class="output" id="api-output">API输出将显示在这里</div>
+    </div>
+
+    <script src="./formula-editor.js"></script>
+    <script>
+        // 初始化编辑器
+        const editor = new FormulaEditor.FormulaEditor({
+            container: document.getElementById('editor-container'),
+            symbols: {
+                basic: [
+                    { value: '+', type: FormulaEditor.ElementType.OPERATOR, description: '加法' },
+                    { value: '-', type: FormulaEditor.ElementType.OPERATOR, description: '减法' },
+                    { value: '×', type: FormulaEditor.ElementType.OPERATOR, description: '乘法' },
+                    { value: '÷', type: FormulaEditor.ElementType.OPERATOR, description: '除法' },
+                    { value: '=', type: FormulaEditor.ElementType.OPERATOR, description: '等于' }
+                ],
+                greek: [
+                    { value: 'α', type: FormulaEditor.ElementType.VARIABLE, description: 'Alpha' },
+                    { value: 'β', type: FormulaEditor.ElementType.VARIABLE, description: 'Beta' },
+                    { value: 'γ', type: FormulaEditor.ElementType.VARIABLE, description: 'Gamma' }
+                ]
+            },
+            validation: {
+                autoValidate: true,
+                rules: [
+                    { type: FormulaEditor.ValidationRuleType.BRACKETS_MATCH, message: '括号不匹配' },
+                    { type: FormulaEditor.ValidationRuleType.OPERATORS_SURROUNDED, message: '运算符两侧必须有操作数' },
+                    { type: FormulaEditor.ValidationRuleType.NO_CONSECUTIVE_OPERANDS, message: '操作数不能连续出现' }
+                ]
+            }
+        });
+
+        // 辅助函数
+        function displayOutput(data) {
+            const output = document.getElementById('api-output');
+            if (typeof data === 'object') {
+                output.textContent = JSON.stringify(data, null, 2);
+            } else {
+                output.textContent = data;
+            }
+        }
+
+        function updateFormulaDisplay() {
+            const formula = editor.getFormula();
+            document.getElementById('formula-output').textContent = formula;
+        }
+
+        function logEvent(eventName, data) {
+            const log = document.getElementById('event-log');
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            let content = `[${timestamp}] ${eventName}`;
+            
+            if (data) {
+                if (typeof data === 'object') {
+                    content += `: ${JSON.stringify(data)}`;
+                } else {
+                    content += `: ${data}`;
+                }
+            }
+            
+            item.textContent = content;
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // 事件注册
+        editor.addEventListener(FormulaEditor.EventType.CHANGE, (data) => {
+            logEvent('change', data.formula);
+            updateFormulaDisplay();
+        });
+
+        editor.addEventListener(FormulaEditor.EventType.FOCUS, () => {
+            logEvent('focus');
+        });
+
+        editor.addEventListener(FormulaEditor.EventType.BLUR, () => {
+            logEvent('blur');
+        });
+
+        editor.addEventListener(FormulaEditor.EventType.VALIDATION_ERROR, (result) => {
+            logEvent('validationError', result.errors.map(e => e.message).join(', '));
+        });
+
+        editor.addEventListener(FormulaEditor.EventType.VALIDATION_SUCCESS, () => {
+            logEvent('validationSuccess');
+        });
+
+        // 基本操作按钮事件
+        document.getElementById('get-formula').addEventListener('click', () => {
+            const formula = editor.getFormula();
+            displayOutput(`当前公式: ${formula}`);
+        });
+
+        document.getElementById('set-formula').addEventListener('click', () => {
+            const formula = document.getElementById('formula-input').value;
+            editor.setFormula(formula);
+            displayOutput(`已设置公式: ${formula}`);
+        });
+
+        document.getElementById('clear-formula').addEventListener('click', () => {
+            editor.clear();
+            displayOutput('已清空公式');
+        });
+
+        document.getElementById('toggle-readonly').addEventListener('click', function() {
+            const currentState = this.textContent.includes('切换');
+            editor.setReadOnly(!currentState);
+            this.textContent = currentState ? '启用编辑' : '切换只读模式';
+            displayOutput(`只读模式: ${!currentState}`);
+        });
+
+        // 元素操作按钮事件
+        document.getElementById('get-element').addEventListener('click', () => {
+            const index = parseInt(document.getElementById('get-element-index').value);
+            const element = editor.getElementAt(index);
+            displayOutput(element || `索引 ${index} 处没有元素`);
+        });
+
+        document.getElementById('get-all-elements').addEventListener('click', () => {
+            const elements = editor.getFormulaElements();
+            displayOutput(elements);
+        });
+
+        document.getElementById('insert-element').addEventListener('click', () => {
+            const value = document.getElementById('element-value').value;
+            const type = document.getElementById('element-type').value;
+            const index = parseInt(document.getElementById('element-index').value);
+            
+            const element = {
+                type: type,
+                value: value
+            };
+            
+            const result = editor.insertElement(element, index);
+            displayOutput(`已在位置 ${index} 插入元素: ${JSON.stringify(result)}`);
+        });
+
+        document.getElementById('append-element').addEventListener('click', () => {
+            const value = document.getElementById('element-value').value;
+            const type = document.getElementById('element-type').value;
+            
+            const element = {
+                type: type,
+                value: value
+            };
+            
+            const result = editor.appendElement(element);
+            displayOutput(`已添加元素到末尾: ${JSON.stringify(result)}`);
+        });
+
+        document.getElementById('update-element').addEventListener('click', () => {
+            const value = document.getElementById('element-value').value;
+            const type = document.getElementById('element-type').value;
+            const index = parseInt(document.getElementById('element-index').value);
+            
+            const update = {
+                type: type,
+                value: value
+            };
+            
+            const success = editor.updateElement(index, update);
+            displayOutput(`更新元素${success ? '成功' : '失败'}: 位置 ${index}`);
+        });
+
+        document.getElementById('remove-element').addEventListener('click', () => {
+            const index = parseInt(document.getElementById('remove-element-index').value);
+            const success = editor.removeElement(index);
+            displayOutput(`删除元素${success ? '成功' : '失败'}: 位置 ${index}`);
+        });
+
+        document.getElementById('delete-current').addEventListener('click', () => {
+            const success = editor.deleteCurrentElement();
+            displayOutput(`删除当前元素${success ? '成功' : '失败'}`);
+        });
+
+        document.getElementById('set-focus').addEventListener('click', () => {
+            const index = parseInt(document.getElementById('focus-index').value);
+            const success = editor.setFocusToIndex(index);
+            displayOutput(`设置光标位置${success ? '成功' : '失败'}: ${index}`);
+        });
+
+        document.getElementById('get-focus').addEventListener('click', () => {
+            const index = editor.getCurrentFocusIndex();
+            displayOutput(`当前光标位置: ${index}`);
+        });
+
+        document.getElementById('find-elements').addEventListener('click', () => {
+            const type = document.getElementById('search-type').value;
+            const indexes = editor.findElements((element) => element.type === type);
+            displayOutput(`找到 ${type} 类型的元素位置: ${indexes.join(', ')}`);
+        });
+
+        document.getElementById('set-elements').addEventListener('click', () => {
+            editor.setElements([
+                { type: 'variable', value: 'x' },
+                { type: 'operator', value: '+' },
+                { type: 'variable', value: 'y' },
+                { type: 'operator', value: '=' },
+                { type: 'number', value: '10' }
+            ]);
+            displayOutput('已设置新元素集: x+y=10');
+        });
+
+        document.getElementById('get-text').addEventListener('click', () => {
+            const text = editor.getFormulaText();
+            displayOutput(`公式纯文本: ${text}`);
+        });
+
+        // 验证操作按钮事件
+        document.getElementById('validate-formula').addEventListener('click', () => {
+            const result = editor.validateFormula();
+            displayOutput(result);
+        });
+
+        document.getElementById('get-validation').addEventListener('click', () => {
+            const result = editor.getLastValidationResult();
+            displayOutput(result || '尚未验证');
+        });
+
+        document.getElementById('set-validation-rules').addEventListener('click', () => {
+            editor.setValidationRules([
+                { type: FormulaEditor.ValidationRuleType.BRACKETS_MATCH, message: '括号必须成对出现' },
+                { type: FormulaEditor.ValidationRuleType.NON_EMPTY, message: '公式不能为空' }
+            ]);
+            displayOutput('已设置新的验证规则');
+        });
+
+        document.getElementById('toggle-auto-validate').addEventListener('click', function() {
+            const currentState = this.textContent.includes('切换');
+            editor.setAutoValidate(!currentState);
+            this.textContent = currentState ? '启用自动验证' : '切换自动验证';
+            displayOutput(`自动验证: ${!currentState}`);
+        });
+
+        // 初始化显示
+        updateFormulaDisplay();
+        logEvent('初始化', '编辑器已创建');
+    </script>
+</body>
+</html> 
